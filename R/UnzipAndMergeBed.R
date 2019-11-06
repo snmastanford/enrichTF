@@ -121,7 +121,8 @@ setMethod(
 #' @details
 #' All compressed files will be de-compressed.
 #' Only first 3 columns (chromasomes, start and end) will be collected.
-#' All BED files will be merged into one BED file.
+#' All BED files will be merged into one BED file. 
+#' The other columns will be discarded.
 #' @return An invisible \code{\link{EnrichStep-class}}
 #' object (inherit from \code{\link{Step-class}}) scalar for downstream analysis.
 #' @author Zheng Wei

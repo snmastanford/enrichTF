@@ -46,7 +46,8 @@ Third, merge the BED files into one BED.
 \details{
 All compressed files will be de-compressed.
 Only first 3 columns (chromasomes, start and end) will be collected.
-All BED files will be merged into one BED file.
+All BED files will be merged into one BED file. 
+The other columns will be discarded.
 }
 \examples{
 foregroundBedPath <- system.file(package = "enrichTF", "extdata","testregion.bed.gz")
