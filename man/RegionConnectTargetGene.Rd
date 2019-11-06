@@ -11,21 +11,26 @@
 enrichRegionConnectTargetGene(prevStep, inputForegroundBed = NULL,
   inputBackgroundBed = NULL, outputForegroundBed = NULL,
   outputBackgroundBed = NULL, regularGeneCorrBed = NULL,
-  enhancerRegularGeneCorrBed = NULL, ...)
+  enhancerRegularGeneCorrBed = NULL, ouputForgroundGeneTxt = NULL, ...)
 
 \S4method{enrichRegionConnectTargetGene}{Step}(prevStep,
   inputForegroundBed = NULL, inputBackgroundBed = NULL,
   outputForegroundBed = NULL, outputBackgroundBed = NULL,
-  regularGeneCorrBed = NULL, enhancerRegularGeneCorrBed = NULL, ...)
+  regularGeneCorrBed = NULL, enhancerRegularGeneCorrBed = NULL,
+  ouputForgroundGeneTxt = NULL, ...)
 
 regionConnectTargetGene(inputForegroundBed, inputBackgroundBed,
   outputForegroundBed = NULL, outputBackgroundBed = NULL,
-  regularGeneCorrBed = NULL, enhancerRegularGeneCorrBed = NULL, ...)
+  regularGeneCorrBed = NULL, enhancerRegularGeneCorrBed = NULL,
+  ouputForgroundGeneTxt = NULL, ...)
 }
 \arguments{
 \item{prevStep}{\code{\link{Step-class}} object scalar.
-It needs to be the return value of upstream process from \code{\link{genBackground}} or \code{\link{enrichGenBackground}}
-when it is not used in a pipeline.  If it is used in a pipeline or \code{\%>\%} is applied on this function, any steps in this package is acceptable.}
+This parameter is available when the upstream step function
+(printMap() to see the previous functions)
+have been sucessfully called.
+Accepted value can be the object return by any step function or be feed by
+\code{\%>\%} from last step function.}
 
 \item{inputForegroundBed}{\code{Character} scalar.
 The BED file directory of foreground regions.}
@@ -34,31 +39,43 @@ The BED file directory of foreground regions.}
 The BED file directory of background regions.}
 
 \item{outputForegroundBed}{\code{Character} scalar.
-The BED file directory of target genes connecting with foreground regions, which are derived from PECA model.
+The BED file directory of target genes connecting with foreground regions,
+which are derived from PECA model.
 Default: NULL (generated base on inputForegroundBed)}
 
 \item{outputBackgroundBed}{\code{Character} scalar.
-The BED file directory of target genes connecting with background regions, which are derived from PECA model.
+The BED file directory of target genes connecting with background regions,
+which are derived from PECA model.
 Default: NULL (generated base on inputBackgroundBed)}
 
 \item{regularGeneCorrBed}{\code{Character} scalar.
 The BED file directory of target genes which are predicted from PECA.
-Default: NULL (e.g. after \code{library (enrichTF)}, you can call function \code{setGenome("hg19")})}
+Default: NULL (e.g. after \code{library (enrichTF)}, you can call
+function \code{setGenome("hg19")})}
 
 \item{enhancerRegularGeneCorrBed}{\code{Character} scalar.
 The BED file directory of enhancer-targets predicted from PECA.
-Default: NULL (e.g. after \code{library (enrichTF)}, you can call function \code{setGenome("hg19")})}
+Default: NULL (e.g. after \code{library (enrichTF)}, you can call
+function \code{setGenome("hg19")})}
+
+\item{ouputForgroundGeneTxt}{\code{Character} scalar.
+The TXT file directory of target genes list connecting with foreground regions,
+which are derived from PECA model.
+Default: NULL (generated base on inputForegroundBed)}
 
 \item{...}{Additional arguments, currently unused.}
 }
 \value{
-An invisible \code{\link{EnrichStep-class}} object (\code{\link{Step-class}} based) scalar for downstream analysis.
+An invisible \code{\link{EnrichStep-class}} object
+(\code{\link{Step-class}} based) scalar for downstream analysis.
 }
 \description{
-Connect foreground and background regions to their target genes, which is predicted from PECA model.
+Connect foreground and background regions to their target genes,
+which is predicted from PECA model.
 }
 \details{
-Connect foreground and background regions to target genes, which are predicted from PECA.
+Connect foreground and background regions to target genes,
+which are predicted from PECA.
 }
 \examples{
 setGenome("testgenome") #Use "hg19","hg38",etc. for your application

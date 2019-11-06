@@ -21,50 +21,58 @@ setMethod(
         if(length(prevSteps)>0){
             prevStep <- prevSteps[[1]]
             foregroundBed <- getParam(prevStep,"bedOutput")
-            .Object@inputList[["inputForegroundBed"]] <- foregroundBed
+            input(.Object)$inputForegroundBed <- foregroundBed
         }
 
         if(!is.null(inputForegroundBed)){
-            .Object@inputList[["inputForegroundBed"]] <- inputForegroundBed
+            input(.Object)$inputForegroundBed <- inputForegroundBed
         }
 
         if(is.null(outputForegroundBed)){
-            .Object@outputList[["outputForegroundBed"]] <- getAutoPath(.Object,originPath = .Object@inputList[["inputForegroundBed"]],regexSuffixName = "bed",suffix = "foreground.bed")
+            output(.Object)$outputForegroundBed <-
+                getAutoPath(.Object,originPath =
+                                input(.Object)[["inputForegroundBed"]],
+                            regexSuffixName = "bed",suffix = "foreground.bed")
         }else{
-            .Object@outputList[["outputForegroundBed"]] <- outputForegroundBed
+            output(.Object)$outputForegroundBed <- outputForegroundBed
         }
 
         if(is.null(outputBackgroundBed)){
-            .Object@outputList[["outputBackgroundBed"]] <- getAutoPath(.Object,originPath = .Object@inputList[["inputForegroundBed"]],regexSuffixName = "bed",suffix = "background.bed")
+            output(.Object)$outputBackgroundBed <-
+                getAutoPath(.Object,originPath =
+                                input(.Object)[["inputForegroundBed"]],
+                            regexSuffixName = "bed",suffix = "background.bed")
         }else{
-            .Object@outputList[["outputBackgroundBed"]] <- outputBackgroundBed
+            output(.Object)$outputBackgroundBed <- outputBackgroundBed
         }
 
         if(is.null(outputRegionBed)){
-            .Object@outputList[["outputRegionBed"]] <- getAutoPath(.Object,originPath = .Object@inputList[["inputForegroundBed"]],regexSuffixName = "bed",suffix = "allregion.bed")
+            output(.Object)$outputRegionBed <-
+                getAutoPath(.Object,originPath =
+                                input(.Object)[["inputForegroundBed"]],
+                            regexSuffixName = "bed",suffix = "allregion.bed")
         }else{
-            .Object@outputList[["outputRegionBed"]] <- outputRegionBed
+            output(.Object)$outputRegionBed <- outputRegionBed
         }
         if(is.null(genome)){
             if(getGenome() == "testgenome"){
-                .Object@paramList[["bsgenome"]] <- BSgenome::getBSgenome("hg19")
+                param(.Object)$bsgenome <- BSgenome::getBSgenome("hg19")
             }else{
-                .Object@paramList[["bsgenome"]] <- BSgenome::getBSgenome(getGenome())
+                param(.Object)$bsgenome <- BSgenome::getBSgenome(getGenome())
             }
-
         }else{
             if(genome == "testgenome"){
                 genome <- "hg19"
             }
-            .Object@paramList[["bsgenome"]] <- BSgenome::getBSgenome(genome = genome)
+            param(.Object)$bsgenome <- BSgenome::getBSgenome(genome = genome)
 
 
         }
-        .Object@paramList[["regionLen"]] <- regionLen
+        param(.Object)$regionLen <- regionLen
         if(is.null(sampleNumb)){
-            .Object@paramList[["sampleNumb"]] <- 0
+            param(.Object)$sampleNumb<- 0
         }else{
-            .Object@paramList[["sampleNumb"]] <- sampleNumb
+            param(.Object)$sampleNumb <- sampleNumb
         }
 
         .Object
@@ -101,15 +109,32 @@ randomSampleOnGenome<-function(regionLen, sampleNumber,bsgenome){
     selchr <- grep("_|M",names(chrlens),invert=TRUE)
     chrlens <- chrlens[selchr]
     startchrlens <- chrlens - regionLen
-    spchrs <- sample(x = names(startchrlens),size =  sampleNumber, replace = TRUE, prob = startchrlens / sum(startchrlens))
-    gr <- GRanges()
-    for(chr in names(startchrlens)){
-        startpt <- sample(x = 1:startchrlens[chr],size = sum(spchrs == chr),replace = FALSE)
+    spchrs <- sample(x = names(startchrlens),size =  sampleNumber,
+                     replace = TRUE, prob = startchrlens / sum(startchrlens))
+    #gr <- GRanges()
+    # for(chr in names(startchrlens)){
+    #     if(sum(spchrs == chr) == 0){
+    #         next
+    #     }
+    #     startpt <- sample(x = 1:startchrlens[chr],size = sum(spchrs == chr),replace = FALSE)
+    #     #non overlapped method:
+    #     #startpt <- sample(x = 1:(startchrlens[chr] - sum(spchrs == chr) * regionLen),size = sum(spchrs == chr),replace = FALSE)
+    #     #startpt <- startpt + 0:(sum(spchrs == chr)-1) * regionLen
+    #     gr <- c(gr,GRanges(seqnames = chr, ranges = IRanges(start = startpt, width = 1000)))
+    # }
+    gr <- lapply(names(startchrlens), function(chr){
+        if(sum(spchrs == chr) == 0){
+            return(NULL)
+        }
+        startpt <- sample(x = seq_len(startchrlens[chr]),
+                          size = sum(spchrs == chr),replace = FALSE)
         #non overlapped method:
         #startpt <- sample(x = 1:(startchrlens[chr] - sum(spchrs == chr) * regionLen),size = sum(spchrs == chr),replace = FALSE)
         #startpt <- startpt + 0:(sum(spchrs == chr)-1) * regionLen
-        gr <- c(gr,GRanges(seqnames = chr, ranges = IRanges(start = startpt, width = 1000)))
-    }
+        return(GRanges(seqnames = chr,
+                       ranges = IRanges(start = startpt, width = 1000)))
+    })
+    gr <- do.call("c",gr)
     return(sort(gr,ignore.strand=TRUE))
 }
 
@@ -130,85 +155,43 @@ setMethod(
         start(foregroundgr) <- floor(midpoint - regionLen/2)
         end(foregroundgr) <- floor(midpoint + regionLen/2)
         foregroundgr <- sort(foregroundgr,ignore.strand=TRUE)
-        mcols(foregroundgr)$name <-  1:length(foregroundgr)
+        mcols(foregroundgr)$name <-  seq_len(length(foregroundgr))
         export.bed(object = foregroundgr, con = outputForegroundBed)
         if(sampleNumb == 0){
             sampleNumb = length(foregroundgr)
         }
         backgroundgr <- randomSampleOnGenome(regionLen, sampleNumb, bsgenome)
-        mcols(backgroundgr)$name <- (length(foregroundgr) + 1) : (length(foregroundgr) + length(backgroundgr))
+        mcols(backgroundgr)$name <-
+            (length(foregroundgr) + 1) : (length(foregroundgr) + length(backgroundgr))
         export.bed(object = backgroundgr, con = outputBackgroundBed)
         regiongr <- c(foregroundgr,backgroundgr)
+        score(regiongr) <- 0
         export.bed(object = regiongr, con = outputRegionBed)
         .Object
     }
 )
 
-setMethod(
-    f = "checkRequireParam",
-    signature = "GenBackground",
-    definition = function(.Object,...){
-        if(is.null(.Object@inputList[["inputForegroundBed"]])){
-            stop("inputForegroundBed is required.")
-        }
-
-    }
-)
-
-
-
-setMethod(
-    f = "checkAllPath",
-    signature = "GenBackground",
-    definition = function(.Object,...){
-        checkFileExist(.Object@inputList[["inputForegroundBed"]]);
-
-    }
-)
-
-setMethod(
-    f = "getReportValImp",
-    signature = "GenBackground",
-    definition = function(.Object,item,...){
-        txt <- readLines(.Object@paramlist[["reportOutput"]])
-        if(item == "total"){
-            s<-strsplit(txt[1]," ")
-            return(as.integer(s[[1]][1]))
-        }
-        if(item == "maprate"){
-            s<-strsplit(txt[length(txt)],"% ")
-            return(as.numeric(s[[1]][1])/100)
-        }
-        if(item == "detail"){
-            return(txt)
-        }
-        stop(paste0(item," is not an item of report value."))
-    }
-)
-
-setMethod(
-    f = "getReportItemsImp",
-    signature = "GenBackground",
-    definition = function(.Object, ...){
-        return(c("total","maprate","detail"))
-    }
-)
 
 
 #' @name GenBackground
 #' @importFrom rtracklayer import
 #' @importFrom rtracklayer import.bed
-#' @title Generate background regions and reset the size of foreground regions
+#' @title Generate background regions and reset the size of
+#' foreground regions
 #' @description
-#' Use uniform distribution to generate background sequence regions from genome.
-#' The size of foreground regions will be unified into the length specified in argument.
+#' Use uniform distribution to generate background
+#' sequence regions from genome.
+#' The size of foreground regions will be unified into the
+#' length specified in argument.
 #' @param prevStep \code{\link{Step-class}} object scalar.
-#' It needs to be the return value of upstream process from other packages, such as esATAC.
+#' It needs to be the return value of upstream process
+#' from other packages, such as esATAC.
 #' @param inputForegroundBed \code{Character} scalar.
 #' The directory of foreground BED file.
 #' @param genome \code{Character} scalar.
 #' Bioconductor supported genome such as "hg19", "mm10", etc.
-#' Default: NULL (e.g. after library (enrichTF), you can call function \code{setGenome("hg19")})
+#' Default: NULL (e.g. after library (enrichTF),
+#' you can call function \code{setGenome("hg19")})
 #' @param outputForegroundBed \code{Character} scalar.
 #' The BED file directory of reshaped foreground regions.
 #' Default: NULL (generated base on inputForegroundBed)
@@ -218,14 +201,20 @@ setMethod(
 #' @param outputRegionBed \code{Character} scalar.
 #' Foreground and background merged BED files.
 #' Default: NULL (generated base on inputForegroundBed)
-#' @param regionLen \code{Character} scalar. It sets the length of forground sequence regions. Default: 1000
+#' @param regionLen \code{Character} scalar.
+#' It sets the length of forground sequence regions.
+#' Default: 1000
 #' @param sampleNumb \code{numeric} scalar.
-#' It sets the number of background regions that will be sampled. Default: 10000
+#' It sets the number of background regions that
+#' will be sampled. Default: 10000
 #' @param ... Additional arguments, currently unused.
 #' @details
-#' Use uniform distribution to generate background sequence regions from genome.
-#' The size of foreground regions will be unified into the length specified in argument.
-#' @return An invisible \code{\link{EnrichStep-class}} object (\code{\link{Step-class}} based) scalar for downstream analysis.
+#' Use uniform distribution to generate background sequence
+#' regions from genome.
+#' The size of foreground regions will be unified into the
+#'  length specified in argument.
+#' @return An invisible \code{\link{EnrichStep-class}}
+#' object (\code{\link{Step-class}} based) scalar for downstream analysis.
 #' @author Zheng Wei
 #' @seealso
 #' \code{\link{regionConnectTargetGene}}
@@ -238,15 +227,16 @@ setMethod(
 #' gen <- genBackground(inputForegroundBed = foregroundBedPath)
 
 
-setGeneric("enrichGenBackground",function(prevStep,
-                                          inputForegroundBed = NULL,
-                                          genome = NULL,
-                                          outputForegroundBed = NULL,
-                                          outputBackgroundBed = NULL,
-                                          outputRegionBed = NULL,
-                                          regionLen = 1000,
-                                          sampleNumb = 10000,
-                                          ...) standardGeneric("enrichGenBackground"))
+setGeneric("enrichGenBackground",
+           function(prevStep,
+                    inputForegroundBed = NULL,
+                    genome = NULL,
+                    outputForegroundBed = NULL,
+                    outputBackgroundBed = NULL,
+                    outputRegionBed = NULL,
+                    regionLen = 1000,
+                    sampleNumb = 10000,
+                    ...) standardGeneric("enrichGenBackground"))
 
 
 
@@ -265,7 +255,9 @@ setMethod(
                           regionLen = 1000,
                           sampleNumb = NULL,
                           ...){
-        allpara <- c(list(Class = "GenBackground", prevSteps = list(prevStep)),as.list(environment()),list(...))
+        allpara <- c(list(Class = "GenBackground",
+                          prevSteps = list(prevStep)),
+                     as.list(environment()),list(...))
         step <- do.call(new,allpara)
         invisible(step)
     }
@@ -281,7 +273,9 @@ genBackground <- function(inputForegroundBed,
                           regionLen = 1000,
                           sampleNumb = NULL,
                           ...){
-    allpara <- c(list(Class = "GenBackground", prevSteps = list()),as.list(environment()),list(...))
+    allpara <- c(list(Class = "GenBackground",
+                      prevSteps = list()),
+                 as.list(environment()),list(...))
     step <- do.call(new,allpara)
     invisible(step)
 }

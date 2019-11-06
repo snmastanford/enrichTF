@@ -17,13 +17,19 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE,warning = FALSE)
 ```
 
+
+
+
+# Introduction
+As transcription factors (TFs) play a crucial role in regulating the transcription process through binding on the genome alone or in a combinatorial manner, TF enrichment analysis is an efficient and important procedure to locate the candidate functional TFs from a set of experimentally defined regulatory regions. While it is commonly accepted that structurally related TFs may have similar binding preference to sequences (i.e. motifs) and one TF may have multiple motifs, TF enrichment analysis is much more challenging than motif enrichment analysis. Here we present a R package for TF enrichment analysis which combine motif enrichment with the PECA model.
+
 # Quick Start
 
 
 ## Download and Installation
 
 
-The package enrichTF is part of Bioconductor project starting from Bioc 3.9 built on R 3.5. To install the latest version of enrichTF, please check your current Bioconductor version and R version first. The latest version of R is recommended, and then you can download and install enrichTF and all its dependencies as follows:
+The package enrichTF is part of Bioconductor project starting from Bioc 3.9 built on R 3.6. To install the latest version of enrichTF, please check your current Bioconductor version and R version first. The latest version of R is recommended, and then you can download and install enrichTF and all its dependencies as follows:
 
 ```{r installpkg,eval=FALSE,message=FALSE,warning=FALSE}
 if (!requireNamespace("BiocManager", quietly=TRUE))
@@ -38,9 +44,7 @@ Similar with other R packages, please load enrichTF each time before using the p
 library(enrichTF)
 ```
 
-```{r echo=FALSE}
-dir.create('refdir')
-```
+
 
 ## Running with the default configuration
 
@@ -50,7 +54,7 @@ Users only need to provide a region list in BED format which contains 3 columns 
 
 All required data and software will be installed automatically.
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # Provide your region list in BED format with 3 columns.
 foregroundBedPath <- system.file(package = "enrichTF", "extdata","testregion.bed")
 # Call the whole pipeline
@@ -58,9 +62,6 @@ PECA_TF_enrich(inputForegroundBed = foregroundBedPath, genome = "testgenome") # 
 ```
 
 
-
-# Introduction
-As transcription factors (TFs) play a crucial role in regulating the transcription process through binding on the genome alone or in a combinatorial manner, TF enrichment analysis is an efficient and important procedure to locate the candidate functional TFs from a set of experimentally defined regulatory regions. While it is commonly accepted that structurally related TFs may have similar binding preference to sequences (i.e. motifs) and one TF may have multiple motifs, TF enrichment analysis is much more challenging than motif enrichment analysis. Here we present a R package for TF enrichment analysis which combine motif enrichment with the PECA model.
 
 # How TF Enrichment Works
 
@@ -72,9 +73,9 @@ In this work, we define four kinds of relations which will be introduced in deta
 
 When users input a region list in BED format, the relations between regions and one gene can be obtained from two ways:
 
-1.	The regions which are overlapped with the functional region of this gene. This type of relation can be obtained from gene reference data.
+1.    The regions which are overlapped with the functional region of this gene. This type of relation can be obtained from gene reference data.
 
-2.	The regions are enhancers or other distal regulatory elements of this gene. This type of relation can be derived from 3D genome sequencing experiments such as Hi-C and HiChIP.
+2.    The regions are enhancers or other distal regulatory elements of this gene. This type of relation can be derived from 3D genome sequencing experiments such as Hi-C and HiChIP.
 
 As we have already integrated and organized the potential relations between regions and genes from both gene reference and experiment profiles, users can use this source to obtain region-gene relations for their input region list quite easily.
 
@@ -133,8 +134,15 @@ Finally, false discover rate correction is applied on the results of Fisher's ex
 
 # Customized Workflow
 
+There are 4 steps to customize the workflow. You can follow the order below:
+
+```{r}
+printMap()
+
+```
+
 ## Prepare inputs
-The function of genBackground is to generate random background regions based on the input regions and to set the length of input sequence regions. We try to select background sequence regions that match the GC-content distribution of the input sequence regions. The default length and number of background regions are 1000 and 10,000, respectively. The length of sequence regions used for motif finding is important. Here, we set 1000 as default value, which means for each region, we get sequences from -500 to +500 relative from center.
+The function of `genBackground` is to generate random background regions based on the input regions and to set the length of input sequence regions. We try to select background sequence regions that match the GC-content distribution of the input sequence regions. The default length and number of background regions are 1000 and 10,000, respectively. The length of sequence regions used for motif finding is important. Here, we set 1000 as default value, which means for each region, we get sequences from -500 to +500 relative from center.
 For example,
 ```{r loading01}
 setGenome("testgenome")
@@ -142,24 +150,27 @@ foregroundBedPath <- system.file(package = "enrichTF", "extdata","testregion.bed
 gen <- genBackground(inputForegroundBed = foregroundBedPath)
 ```
 ## Motifscan
-The function MotifsInRegions is to scan for motif occurrences using the prepared PWMs and obtain the promising candidate motifs in these regions.
+
+The function of `regionConnectTargetGene` is to connect foreground and background regions to their target genes, which are predicted from PECA model.
+
 For example,
 ```{r loading02}
 conTG <- enrichRegionConnectTargetGene(gen)
 ```
 ## Connect regions with target genes
 
-The function of regionConnectTargetGene is to connect foreground and background regions to their target genes, which are predicted from PECA model.
+The function `MotifsInRegions` is to scan for motif occurrences using the prepared PWMs and obtain the promising candidate motifs in these regions.
+
 
 For example,
 ```{r loading03}
 findMotif <- enrichFindMotifsInRegions(gen,motifRc="integrate")
 ```
 ## TF enrichment test
-The function of TFsEnrichInRegions is to test whether each TF is enriched on input regions.
+The function of `TFsEnrichInRegions` is to test whether each TF is enriched on input regions.
 For example,
-```{r eval=FALSE}
-result <- enrichTFsEnrichInRegions(gen,NULL,NULL)
+```{r eval=TRUE}
+result <- enrichTFsEnrichInRegions(gen)
 ```
 
 
@@ -174,8 +185,21 @@ foregroundBedPath <- system.file(package = "enrichTF", "extdata","testregion.bed
 result <- genBackground(inputForegroundBed = foregroundBedPath) %>%
 enrichRegionConnectTargetGene%>%
 enrichFindMotifsInRegions(motifRc="integrate") %>%
-enrichTFsEnrichInRegions(NULL,NULL)
+enrichTFsEnrichInRegions
 ```
+
+## Result
+
+Here we show an example result when applying this package on our own data.
+
+```{r}
+
+examplefile  <- system.file(package = "enrichTF", "extdata","result.example.txt")
+read.table(examplefile, sep='\t', header = TRUE)%>%
+  knitr::kable() 
+
+```
+
 
 # Session Information
 

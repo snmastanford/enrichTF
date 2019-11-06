@@ -8,15 +8,13 @@
 \alias{tfsEnrichInRegions}
 \title{Test each TF is enriched in regions or not}
 \usage{
-enrichTFsEnrichInRegions(GenBackgroundStep,
-  FindMotifsInRegionsStep = NULL, RegionConnectTargetGeneStep = NULL,
-  inputRegionBed = NULL, inputForegroundGeneBed = NULL,
-  inputBackgroundGeneBed = NULL, inputRegionMotifBed = NULL,
-  outputTFsEnrichTxt = NULL, inputMotifWeights = NULL,
-  inputTFgeneRelMtx = NULL, inputMotifTFTable = NULL, ...)
+enrichTFsEnrichInRegions(prevStep, inputRegionBed = NULL,
+  inputForegroundGeneBed = NULL, inputBackgroundGeneBed = NULL,
+  inputRegionMotifBed = NULL, outputTFsEnrichTxt = NULL,
+  inputMotifWeights = NULL, inputTFgeneRelMtx = NULL,
+  inputMotifTFTable = NULL, ...)
 
-\S4method{enrichTFsEnrichInRegions}{Step}(GenBackgroundStep,
-  FindMotifsInRegionsStep = NULL, RegionConnectTargetGeneStep = NULL,
+\S4method{enrichTFsEnrichInRegions}{Step}(prevStep,
   inputRegionBed = NULL, inputForegroundGeneBed = NULL,
   inputBackgroundGeneBed = NULL, inputRegionMotifBed = NULL,
   outputTFsEnrichTxt = NULL, inputMotifWeights = NULL,
@@ -28,52 +26,53 @@ tfsEnrichInRegions(inputRegionBed, inputForegroundGeneBed,
   inputMotifTFTable = NULL, ...)
 }
 \arguments{
-\item{GenBackgroundStep}{\code{\link{Step-class}} object scalar.
-It has to be the return value of upstream process from \code{\link{genBackground}} and \code{\link{enrichGenBackground}}
-when it is not used in a pipeline.  If it is used in a pipeline or \code{\%>\%} is applied on this function, any steps in this package is acceptable.}
-
-\item{FindMotifsInRegionsStep}{\code{\link{Step-class}} object scalar.
-This parameter is not necessary when it is in pipeline.
-It has to be the return value of upstream process from \code{\link{findMotifsInRegions}} and \code{\link{enrichFindMotifsInRegions}}
-Default: NULL.}
-
-\item{RegionConnectTargetGeneStep}{\code{\link{Step-class}} object scalar.
-It has to be the return value of upstream process from \code{\link{genBackground}} and \code{\link{enrichGenBackground}}
-This parameter is not necessary when it is in pipeline.
-Default: NULL.}
+\item{prevStep}{\code{\link{Step-class}} object scalar.
+This parameter is available when the upstream step function
+(printMap() to see the previous functions)
+have been sucessfully called.
+Accepted value can be the object return by any step function or be feed by
+\code{\%>\%} from last step function.}
 
 \item{inputRegionBed}{\code{Character} scalar.
 Directory of Regions BED file  including foreground and background}
 
 \item{inputForegroundGeneBed}{\code{Character} scalar.
-Directory of BED file  including foreground regions connected to related genes. The forth column is region ID}
+Directory of BED file  including foreground regions connected
+to related genes. The forth column is region ID}
 
 \item{inputBackgroundGeneBed}{\code{Character} scalar.
-Directory BED file including foreground regions connected to related genes. The forth column is region ID}
+Directory BED file including foreground regions connected
+to related genes. The forth column is region ID}
 
 \item{inputRegionMotifBed}{\code{Character} scalar.
-Directory BED file  including foreground regions matched motifs. The forth column is region ID.
+Directory BED file  including foreground regions matched motifs.
+The forth column is region ID.
 The fifth column is motif calling score. The sixth column is motif name.}
 
 \item{outputTFsEnrichTxt}{\code{Character} scalar.
-Directory of Text result file  with five columns. The first columns is transcription factor ,The second column is xxxx}
+Directory of Text result file  with five columns.
+The first columns is transcription factor ,The second column is xxxx}
 
 \item{inputMotifWeights}{\code{Character} scalar.
-Directory of Text file contain motif weight. The first column is motif name. The second column is the weight.
+Directory of Text file contain motif weight. The first column is motif name.
+The second column is the weight.
 Default: NULL (if \code{setGenome} is called.)}
 
 \item{inputTFgeneRelMtx}{\code{Character} scalar.
-Directory of Text file contain a Transcription Factior(TF) and Gene relation weight matrix.
+Directory of Text file contain a Transcription Factior(TF) and
+Gene relation weight matrix.
 Default: NULL (if \code{setGenome} is called.)}
 
 \item{inputMotifTFTable}{\code{Character} scalar.
-Directory of Text file contain  Transcription Factior(TF) (the first column) and motif name(the second column).
+Directory of Text file contain  Transcription Factior(TF)
+(the first column) and motif name(the second column).
 Default: NULL (if \code{setGenome} is called.)}
 
 \item{...}{Additional arguments, currently unused.}
 }
 \value{
-An invisible \code{\link{EnrichStep-class}} object (\code{\link{Step-class}} based) scalar for downstream analysis.
+An invisible \code{\link{EnrichStep-class}} object
+(\code{\link{Step-class}} based) scalar for downstream analysis.
 }
 \description{
 Test each TF is enriched in regions or not
@@ -85,6 +84,7 @@ you do not familiar with the data format of the input,
 you can run the example to see the example input from previous steps.
 }
 \examples{
+
 library(magrittr)
 setGenome("testgenome") #Use "hg19","hg38",etc. for your application
 foregroundBedPath <- system.file(package = "enrichTF", "extdata","testregion.bed")
@@ -97,6 +97,7 @@ genBackground(inputForegroundBed = foregroundBedPath) \%>\%
     enrichRegionConnectTargetGene \%>\%
     enrichFindMotifsInRegions(motifRc="integrate") \%>\%
     enrichTFsEnrichInRegions
+
 }
 \seealso{
 \code{\link{genBackground}}

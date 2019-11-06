@@ -19,43 +19,66 @@ setMethod(
         outputBackgroundBed <- allparam[["outputBackgroundBed"]]
         regularGeneCorrBed <- allparam[["regularGeneCorrBed"]]
         enhancerRegularGeneCorrBed <- allparam[["enhancerRegularGeneCorrBed"]]
+        ouputForgroundGeneTxt <- allparam[["ouputForgroundGeneTxt"]]
         if(length(prevSteps)>0){
             prevStep <- prevSteps[[1]]
-            .Object@inputList[["inputForegroundBed"]] <- getParam(prevStep,"outputForegroundBed")
-            .Object@inputList[["inputBackgroundBed"]] <- getParam(prevStep,"outputBackgroundBed")
+            input(.Object)$inputForegroundBed <- output(prevStep)$outputForegroundBed
+            input(.Object)$inputBackgroundBed <- output(prevStep)$outputBackgroundBed
         }
         if(!is.null(inputForegroundBed)){
-            .Object@inputList[["inputForegroundBed"]] <- inputForegroundBed
+            input(.Object)$inputForegroundBed <- inputForegroundBed
         }
         if(!is.null(inputBackgroundBed)){
-            .Object@inputList[["inputBackgroundBed"]] <- inputBackgroundBed
+            input(.Object)$inputBackgroundBed <- inputBackgroundBed
         }
 
 
 
         if(is.null(outputForegroundBed)){
-            .Object@outputList[["outputForegroundBed"]] <- getAutoPath(.Object,originPath = .Object@inputList[["inputForegroundBed"]],regexSuffixName = "foreground.bed",suffix = "gene.foreground.bed")
+            output(.Object)$outputForegroundBed <-
+                getAutoPath(.Object,originPath =
+                                .Object$inputList[["inputForegroundBed"]],
+                            regexSuffixName = "foreground.bed",
+                            suffix = "gene.foreground.bed")
         }else{
-            .Object@outputList[["outputForegroundBed"]] <- outputForegroundBed
+            output(.Object)$outputForegroundBed <- outputForegroundBed
+        }
+
+        if(is.null(ouputForgroundGeneTxt)){
+            output(.Object)$ouputForgroundGeneTxt <-
+                getAutoPath(.Object,originPath =
+                                .Object$inputList[["inputForegroundBed"]],
+                            regexSuffixName = "foreground.bed",
+                            suffix = "gene.foreground.txt")
+        }else{
+            output(.Object)$ouputForgroundGeneTxt <- ouputForgroundGeneTxt
         }
 
 
         if(is.null(outputBackgroundBed)){
-            .Object@outputList[["outputBackgroundBed"]] <- getAutoPath(.Object,originPath = .Object@inputList[["inputBackgroundBed"]],regexSuffixName = "background.bed",suffix = "gene.background.bed")
+            output(.Object)$outputBackgroundBed <-
+                getAutoPath(.Object,originPath =
+                                .Object$inputList[["inputBackgroundBed"]],
+                            regexSuffixName = "background.bed",
+                            suffix = "gene.background.bed")
         }else{
-            .Object@outputList[["outputBackgroundBed"]] <- outputBackgroundBed
+            output(.Object)$outputBackgroundBed <- outputBackgroundBed
         }
 
         if(is.null(regularGeneCorrBed)){
-            .Object@outputList[["regularGeneCorrBed"]] <- getRefFiles("RE_gene_corr")
+            output(.Object)$regularGeneCorrBed <-
+                getRefFiles("RE_gene_corr")
         }else{
-            .Object@outputList[["regularGeneCorrBed"]] <- regularGeneCorrBed
+            output(.Object)$regularGeneCorrBed <-
+                regularGeneCorrBed
         }
 
         if(is.null(enhancerRegularGeneCorrBed)){
-            .Object@outputList[["enhancerRegularGeneCorrBed"]] <- getRefFiles("Enhancer_RE_gene_corr")
+            output(.Object)$enhancerRegularGeneCorrBed <-
+                getRefFiles("Enhancer_RE_gene_corr")
         }else{
-            .Object@outputList[["enhancerRegularGeneCorrBed"]] <- enhancerRegularGeneCorrBed
+            output(.Object)$enhancerRegularGeneCorrBed <-
+                enhancerRegularGeneCorrBed
         }
         .Object
     }
@@ -71,13 +94,17 @@ setMethod(
         outputForegroundBed <- getParam(.Object,"outputForegroundBed")
         outputBackgroundBed <- getParam(.Object,"outputBackgroundBed")
         regularGeneCorrBed <- getParam(.Object,"regularGeneCorrBed")
-        enhancerRegularGeneCorrBed <- getParam(.Object,"enhancerRegularGeneCorrBed")
+        enhancerRegularGeneCorrBed <- getParam(.Object,
+                                               "enhancerRegularGeneCorrBed")
+        ouputForgroundGeneTxt <- getParam(.Object, "ouputForgroundGeneTxt")
 
         inputForegroundgr <- import(con=inputForegroundBed)
         inputBackgroundgr <- import(con=inputBackgroundBed)
 
-        rg <- import(con=regularGeneCorrBed,colnames=c("name","score","blockCount"))
-        erg <- import(con=enhancerRegularGeneCorrBed,colnames=c("name","score","blockCount"))
+        rg <- import(con=regularGeneCorrBed,
+                     colnames=c("name","score","blockCount"))
+        erg <- import(con=enhancerRegularGeneCorrBed,
+                      colnames=c("name","score","blockCount"))
 
         pairs <- findOverlapPairs(inputForegroundgr,rg)
         first(pairs)$geneName  <- second(pairs)$name
@@ -107,12 +134,27 @@ setMethod(
 
         outputBackgroundgr <- c(outputBackgroundgr,first(pairs))
 
-        write.table(as.data.frame(outputForegroundgr[mcols(outputForegroundgr)$score>0.3])
-                    [,c("seqnames","start","end","name","score","geneName","blockCount")],
-                    outputForegroundBed,sep="\t",quote = FALSE,row.names = FALSE,col.names = FALSE)
-        write.table(as.data.frame(outputBackgroundgr[mcols(outputBackgroundgr)$score>0.3])
-                    [,c("seqnames","start","end","name","score","geneName","blockCount")],
-                    outputBackgroundBed,sep="\t",quote = FALSE,row.names = FALSE,col.names = FALSE)
+        write.table(as.data.frame(outputForegroundgr[
+            mcols(outputForegroundgr)$score>0.3])
+            [,c("seqnames","start","end","name",
+                "score","geneName","blockCount")],
+            outputForegroundBed,sep="\t",quote = FALSE,
+            row.names = FALSE,col.names = FALSE)
+
+        write.table(as.data.frame(outputForegroundgr[
+            mcols(outputForegroundgr)$score>0.3])
+            [,c("geneName")],
+            ouputForgroundGeneTxt,sep="\t",quote = FALSE,
+            row.names = FALSE,col.names = FALSE)
+
+        write.table(as.data.frame(outputBackgroundgr[
+            mcols(outputBackgroundgr)$score>0.3])
+            [,c("seqnames","start","end","name",
+                "score","geneName","blockCount")],
+                    outputBackgroundBed,sep="\t",quote = FALSE,
+            row.names = FALSE,col.names = FALSE)
+
+
 #        export.bed(outputForegroundgr,outputForegroundBed)
 #        export.bed(outputBackgroundgr,outputBackgroundBed)
 
@@ -123,59 +165,6 @@ setMethod(
     }
 )
 
-setMethod(
-    f = "checkRequireParam",
-    signature = "RegionConnectTargetGene",
-    definition = function(.Object,...){
-        if(is.null(.Object@inputList[["inputForegroundBed"]])){
-            stop("inputForegroundBed is required.")
-        }
-        if(is.null(.Object@inputList[["inputBackgroundBed"]])){
-            stop("inputBackgroundBed is required.")
-        }
-
-    }
-)
-
-
-
-setMethod(
-    f = "checkAllPath",
-    signature = "RegionConnectTargetGene",
-    definition = function(.Object,...){
-        checkFileExist(.Object@inputList[["inputForegroundBed"]])
-        checkFileExist(.Object@inputList[["inputBackgroundBed"]])
-
-    }
-)
-
-setMethod(
-    f = "getReportValImp",
-    signature = "RegionConnectTargetGene",
-    definition = function(.Object,item,...){
-        txt <- readLines(.Object@paramlist[["reportOutput"]])
-        if(item == "total"){
-            s<-strsplit(txt[1]," ")
-            return(as.integer(s[[1]][1]))
-        }
-        if(item == "maprate"){
-            s<-strsplit(txt[length(txt)],"% ")
-            return(as.numeric(s[[1]][1])/100)
-        }
-        if(item == "detail"){
-            return(txt)
-        }
-        stop(paste0(item," is not an item of report value."))
-    }
-)
-
-setMethod(
-    f = "getReportItemsImp",
-    signature = "RegionConnectTargetGene",
-    definition = function(.Object, ...){
-        return(c("total","maprate","detail"))
-    }
-)
 
 
 
@@ -185,30 +174,44 @@ setMethod(
 #' @importFrom TFBSTools PFMatrix
 #' @title Connect regions with their target genes
 #' @description
-#' Connect foreground and background regions to their target genes, which is predicted from PECA model.
+#' Connect foreground and background regions to their target genes,
+#' which is predicted from PECA model.
 #' @param prevStep \code{\link{Step-class}} object scalar.
-#' It needs to be the return value of upstream process from \code{\link{genBackground}} or \code{\link{enrichGenBackground}}
-#' when it is not used in a pipeline.  If it is used in a pipeline or \code{\%>\%} is applied on this function, any steps in this package is acceptable.
+#' This parameter is available when the upstream step function
+#' (printMap() to see the previous functions)
+#' have been sucessfully called.
+#' Accepted value can be the object return by any step function or be feed by
+#' \code{\%>\%} from last step function.
 #' @param inputForegroundBed \code{Character} scalar.
 #' The BED file directory of foreground regions.
 #' @param inputBackgroundBed  \code{Character} scalar.
 #' The BED file directory of background regions.
 #' @param outputForegroundBed \code{Character} scalar.
-#' The BED file directory of target genes connecting with foreground regions, which are derived from PECA model.
+#' The BED file directory of target genes connecting with foreground regions,
+#' which are derived from PECA model.
 #' Default: NULL (generated base on inputForegroundBed)
 #' @param outputBackgroundBed \code{Character} scalar.
-#' The BED file directory of target genes connecting with background regions, which are derived from PECA model.
+#' The BED file directory of target genes connecting with background regions,
+#' which are derived from PECA model.
 #' Default: NULL (generated base on inputBackgroundBed)
 #' @param regularGeneCorrBed \code{Character} scalar.
 #' The BED file directory of target genes which are predicted from PECA.
-#' Default: NULL (e.g. after \code{library (enrichTF)}, you can call function \code{setGenome("hg19")})
+#' Default: NULL (e.g. after \code{library (enrichTF)}, you can call
+#' function \code{setGenome("hg19")})
 #' @param enhancerRegularGeneCorrBed \code{Character} scalar.
 #' The BED file directory of enhancer-targets predicted from PECA.
-#' Default: NULL (e.g. after \code{library (enrichTF)}, you can call function \code{setGenome("hg19")})
+#' Default: NULL (e.g. after \code{library (enrichTF)}, you can call
+#' function \code{setGenome("hg19")})
+#' @param ouputForgroundGeneTxt \code{Character} scalar.
+#' The TXT file directory of target genes list connecting with foreground regions,
+#' which are derived from PECA model.
+#' Default: NULL (generated base on inputForegroundBed)
 #' @param ... Additional arguments, currently unused.
 #' @details
-#' Connect foreground and background regions to target genes, which are predicted from PECA.
-#' @return An invisible \code{\link{EnrichStep-class}} object (\code{\link{Step-class}} based) scalar for downstream analysis.
+#' Connect foreground and background regions to target genes,
+#' which are predicted from PECA.
+#' @return An invisible \code{\link{EnrichStep-class}} object
+#' (\code{\link{Step-class}} based) scalar for downstream analysis.
 #' @author Zheng Wei
 #' @seealso
 #' \code{\link{genBackground}}
@@ -229,6 +232,7 @@ setGeneric("enrichRegionConnectTargetGene",function(prevStep,
                                                     outputBackgroundBed = NULL,
                                                     regularGeneCorrBed = NULL,
                                                     enhancerRegularGeneCorrBed = NULL,
+                                                    ouputForgroundGeneTxt = NULL,
                                                     ...) standardGeneric("enrichRegionConnectTargetGene"))
 
 
@@ -246,8 +250,11 @@ setMethod(
                           outputBackgroundBed = NULL,
                           regularGeneCorrBed = NULL,
                           enhancerRegularGeneCorrBed = NULL,
+                          ouputForgroundGeneTxt = NULL,
                           ...){
-        allpara <- c(list(Class = "RegionConnectTargetGene", prevSteps = list(prevStep)),as.list(environment()),list(...))
+        allpara <- c(list(Class = "RegionConnectTargetGene",
+                          prevSteps = list(prevStep)),
+                     as.list(environment()),list(...))
         step <- do.call(new,allpara)
         invisible(step)
     }
@@ -261,8 +268,10 @@ regionConnectTargetGene <- function(inputForegroundBed,
                                     outputBackgroundBed = NULL,
                                     regularGeneCorrBed = NULL,
                                     enhancerRegularGeneCorrBed = NULL,
+                                    ouputForgroundGeneTxt = NULL,
                                     ...){
-    allpara <- c(list(Class = "RegionConnectTargetGene", prevSteps = list()),as.list(environment()),list(...))
+    allpara <- c(list(Class = "RegionConnectTargetGene", prevSteps = list()),
+                 as.list(environment()),list(...))
     step <- do.call(new,allpara)
     invisible(step)
 }
