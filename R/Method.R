@@ -10,7 +10,7 @@
 #' @param genome \code{Character} scalar.
 #' Bioconductor supported genome like "hg19", "mm10", etc.
 #' @param threads \code{Numeric} scalar.
-#' The max number of threads that can be used by each step of the pipeline
+#' The maximum number of threads that can be used by each step of the pipeline
 #' @param pipeName \code{Character} scalar or vector.
 #' Pipeline name.
 #' @param ... Additional arguments to set arguments for each Steps.

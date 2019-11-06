@@ -20,7 +20,7 @@ Foreground BED file directory.}
 Bioconductor supported genome like "hg19", "mm10", etc.}
 
 \item{threads}{\code{Numeric} scalar.
-The max number of threads that can be used by each step of the pipeline}
+The maximum number of threads that can be used by each step of the pipeline}
 
 \item{pipeName}{\code{Character} scalar or vector.
 Pipeline name.}
