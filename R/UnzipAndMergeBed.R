@@ -103,24 +103,24 @@ setMethod(
 #' @title Unzip all zipped BED files and
 #' merge them into one BED file
 #' @description
-#' This function process region BED files in three step:
-#' First, unzip the gzip and bzip2  BED input files.
-#' Second, select first 3 columns of the BED files.
-#' Third, merge the BED files into one BED.
+#' This function processes region BED files in three steps:
+#' First, unzip the BED.gz or BED.bz2 input files.
+#' Secondly, select first 3 columns of the BED files.
+#' Thirdly, merge the BED files into one file.
 #' @param prevStep \code{\link{Step-class}} object scalar.
 #' It needs to be the return value of upstream process
 #' from other packages, such as ATAC-seq
-#' peak calling result from esATAC.
+#' peak calling results from esATAC.
 #' @param bedInput \code{Character} scalar or vector.
 #' The directory of region BED files for analysis.
 #' BED, BED.gz, BED.bz2 formats are supported.
 #' @param bedOutput \code{Character} scalar.
-#' The BED output file directory of merged BED files.
-#' Default: NULL (generated base on first BED file in  bedInput)
+#' The output directory of the merged BED file.
+#' Default: NULL (generated based on first BED file in bedInput)
 #' @param ... Additional arguments, currently unused.
 #' @details
 #' All compressed files will be de-compressed.
-#' Only first 3 columns (chromasomes, start and end) will be collected.
+#' Only first 3 columns (chromosomes, start and end) will be collected.
 #' All BED files will be merged into one BED file. 
 #' The other columns will be discarded.
 #' @return An invisible \code{\link{EnrichStep-class}}

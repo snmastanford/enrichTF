@@ -72,7 +72,7 @@ setMethod(
         region <- import.bed(bedInput)
         openTable <- read.table(openConserveBedInput,header = F,sep = "\t")
 
-        # transform open table into GRanges format
+        # transform openness table into GRanges format
         openBed <- openTable[,1:3]
         colnames(openBed) <- c("chrom", "start", "end")
         openValue <- openTable[,4:ncol(openTable)]
@@ -80,7 +80,7 @@ setMethod(
         openRanges <- as(openBed,"GRanges")
         mcols(openRanges) <- openValue
 
-        # find overlapped region
+        # find overlapped regions
         pairs <- findOverlapPairs(openRanges, region, ignore.strand = TRUE)
         openRegion <- first(pairs)
         openRegion <- as.data.frame(openRegion)
@@ -103,32 +103,32 @@ setMethod(
 #' @name TissueOpennessConserve
 #' @importFrom rtracklayer import
 #' @importFrom rtracklayer import.bed
-#' @title Tissue's open conservation of the given region
+#' @title Conservation score of openness across tissues for the given regions
 #' @description
-#' User provide region through a BED file.
-#' This function will provide tissue's open conservation analysis for these region.
+#' Users provide region positions through a BED file.
+#' This function will provide the conservation score of openness across tissues for these given regions.
 #' @param prevStep \code{\link{Step-class}} object scalar.
 #' This parameter is available when the upstream step function
-#' (printMap() to see the previous functions)
-#' have been sucessfully called.
-#' Accepted value can be the object return by any step function or be feed by
+#' (printMap() to check the previous functions)
+#' has been sucessfully called.
+#' Accepted value can be the object returned by any step function or be fed by
 #' \code{\%>\%} from last step function.
 #' @param bedInput \code{Character} scalar.
-#' The directory of region BED file for analysis.
+#' The directory of input BED file for analysis.
 #' @param openConserveBedInput \code{Character} scalar.
-#' The open level BED file for analysis. The first three columns are chromosome, start and end,
-#' The remaining columns are region name and conservation score.
+#' The openness conservation score file for analysis. The first three columns are chromosome name, start and end positions,
+#' and the remaining two columns are the region name and conservation score across tissues.
 #' @param bedOutput \code{Character} scalar.
-#' The BED output file directory of merged BED files.
-#' Default: NULL (generated base on bedInput)
+#' The output file directory of merged BED files.
+#' Default: NULL (generated based on bedInput)
 #' @param distrPdfOutput \code{Character} scalar.
-#' The open conservation distribution figure for each tissue will be provided in PDF file.
+#' The openness conservation distribution figure will be provided in a PDF file.
 #' @param ... Additional arguments, currently unused.
 #' @details
-#' We collected 201 DNase-seq or ATAC-seq sample from ENCODE and calculate their open level value.
-#' They can be download and install automatically. So users do not need to configure themselves.
+#' We collected 201 DNase-seq/ATAC-seq samples from ENCODE and calculated their openness levels.
+#' These can be downloaded and installed automatically. So users do not need to configure by themselves.
 #' @return An invisible \code{\link{EnrichStep-class}}
-#' object (\code{\link{Step-class}} based) scalar for downstream analysis.
+#' object (based on \code{\link{Step-class}}) scalar for downstream analysis.
 #' @author Zheng Wei
 #' @seealso
 #' \code{\link{unzipAndMergeBed}}

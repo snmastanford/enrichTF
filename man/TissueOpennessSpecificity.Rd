@@ -6,7 +6,7 @@
 \alias{enrichTissueOpennessSpecificity,Step-method}
 \alias{enrichTissueOpennessSpecificity}
 \alias{tissueOpennessSpecificity}
-\title{Tissue's open specificity of the given region}
+\title{Tissue-specific openness scores for the given regions}
 \usage{
 enrichTissueOpennessSpecificity(prevStep, bedInput = NULL,
   openBedInput = NULL, sampleTxtInput = NULL, bedOutput = NULL,
@@ -24,48 +24,48 @@ tissueOpennessSpecificity(bedInput, openBedInput = NULL,
 }
 \arguments{
 \item{prevStep}{\code{\link{Step-class}} object scalar.
-This parameter is available when the upstream step function
-(printMap() to see the previous functions)
+This parameter is available when the upstream step functions
+(printMap() to check the previous functions)
 have been sucessfully called.
-Accepted value can be the object return by any step function or be feed by
+Accepted value can be the object returned by any step function or be fed by
 \code{\%>\%} from last step function.}
 
 \item{bedInput}{\code{Character} scalar.
-The directory of region BED file for analysis.}
+The directory of input BED file for analysis.}
 
 \item{openBedInput}{\code{Character} scalar.
-The open level BED file for analysis. The first three columns are chromosome, start and end,
-The remaining columns are the open level for each tissue.
-The order of tissue should be consistent with the order in the file provided by sampleTxtInput.}
+The openness level file of different tissues for analysis. The first three columns are chromosome name, start and end positions,
+The remaining columns are the openness values for each tissue.
+The order of tissues should be consistent with the file provided by sampleTxtInput.}
 
 \item{sampleTxtInput}{\code{Character} scalar.
-The tissue sample information of in the file provided by openBedInput.
-There are 4 columns seperated by tab. The first column is the order number.
-The second column is the tissue detail information.
+The tissue annotation of samples in the file provided by openBedInput.
+There are 4 columns seperated by tab. The first column indicates the order.
+The second column is the tissue annotation in detail.
 The third column is the tissue name.
-The forth column is the code from source project like ENCODE}
+The forth column is the accession number in its original database such as ENCODE project.}
 
 \item{bedOutput}{\code{Character} scalar.
-The BED output file directory of merged BED files.
-Default: NULL (generated base on bedInput)}
+The output file directory of merged BED files.
+Default: NULL (generated based on bedInput)}
 
 \item{distPdfOutput}{\code{Character} scalar.
-The open level distribution figure for each tissue will be provided in PDF file.
-The order is strong to weak.}
+The openness level distribution figure for each tissue will be provided in PDF file.
+It is shown in descending order.}
 
 \item{heatmapPdfOutput}{\code{Character} scalar.
-The open level hiachical clustering heatmap base on region and tissue will be provided in this PDF file.
-The corresponding heatmap data will store at the same directory with suffix .Rdata}
+The openness level hierarchical clustering heatmap base on regions and tissues will be provided in this PDF file.
+The corresponding heatmap data will be stored in the Rdata format at the same directory.}
 
 \item{sampleTxtOutput}{\code{Character} scalar.
-In this file, there are five columns seperated with tab.
-Fist four columns are the same with sampleTxtInput:
+In this file, there are five columns seperated by tab.
+The first four columns are the same with sampleTxtInput:
 The first column is the order number.
 The second column is the tissue detail information.
 The third column is the tissue name.
-The forth column is the code from source project like ENCODE
-The last column is the open level median level for each tissue.
-The table is in decreasing order of last column}
+The forth column is the code from source project such as ENCODE project.
+The last column is the median value of the openness level for each tissue.
+The table is in descending order of last column}
 
 \item{...}{Additional arguments, currently unused.}
 }
@@ -74,14 +74,14 @@ An invisible \code{\link{EnrichStep-class}}
 object (\code{\link{Step-class}} based) scalar for downstream analysis.
 }
 \description{
-User provide region through a BED file.
-This function will provide tissue's open specificity analysis for this region.
-Open level median,  distribution and clustering result (heatmap)
-based on tissue and region will be provided.
+Users provide region positions through a BED file.
+This function will provide tissue-specific openness degree of the given regions.
+Median value of Openness level,  openness distribution and clustering result (heatmap)
+based on tissues and regions will be caculated.
 }
 \details{
-We collect 201 DNase-seq or ATAC-seq sample from ENCODE and calculate their open level value.
-They can be download and install automatically. So users do not need to configure themselves.
+We collect 201 DNase-seq or ATAC-seq samples from ENCODE and calculate their openness level value.
+They can be downloaded and installed automatically. So users do not need to configure by themselves.
 }
 \examples{
 foregroundBedPath <- system.file(package = "enrichTF", "extdata","testregion.bed")
