@@ -20,6 +20,7 @@ setMethod(
         inputPwmFile <- allparam[["inputPwmFile"]]
         genome <- allparam[["genome"]]
         outputRegionMotifBed <- allparam[["outputRegionMotifBed"]]
+        threads <- allparam[["threads"]]
         if(length(prevSteps)>0){
             prevStep <- prevSteps[[1]]
             outputRegionBed <- getParam(prevStep,"outputRegionBed")
@@ -68,6 +69,11 @@ setMethod(
         }
         if(.Object$paramList[["genome"]] == "testgenome"){
             param(.Object)$genome <- "hg19"
+        }
+        if(is.null(threads)){
+            param(.Object)$threads <- getThreads()
+        }else{
+            param(.Object)$threads <- threads
         }
         .Object
     }
@@ -147,6 +153,7 @@ setMethod(
         inputRegionBed <- getParam(.Object,"inputRegionBed")
         pwmObj <- getParam(.Object,"pwmObj")
         genome <- getParam(.Object,"genome")
+        threads <- getParam(.Object,"threads")
         outputRegionMotifBed <- getParam(.Object,"outputRegionMotifBed")
         outputMotifBed <- getParam(.Object,"outputMotifBed")
         if(genome == "testgenome"){
@@ -195,12 +202,25 @@ setMethod(
             }
 
         }else{
-            motif_ix <-
-                parallel::mclapply(pwmObj,
-                                   motifmatchr::matchMotifs,
+            motif_ix <- NULL
+            osname <- get_os()
+            if(osname == "osx" || osname == "linux"){
+                motif_ix <-
+                    parallel::mclapply(pwmObj,
+                                       motifmatchr::matchMotifs,
+                                       subject = regions,
+                                       genome = genome,
+                                       out = "positions", p.cutoff = 5e-04, mc.cores = threads)
+            }else{
+                cl <- makeCluster(threads)
+                motif_ix <- parallel::parLapply(cl = cl, X = pwmObj,
+                                   fun = motifmatchr::matchMotifs,
                                    subject = regions,
                                    genome = genome,
-                                   out = "positions", p.cutoff = 5e-04, mc.cores = getThreads())
+                                   out = "positions", p.cutoff = 5e-04)
+                stopCluster(cl)
+
+            }
             #motifmatchr::matchMotifs(pwms = pwmObj, subject = regions, genome = genome, out="positions")
             result <- c()
             #        .Object@propList[["motif_ix"]] <-motif_ix
@@ -302,6 +322,9 @@ setMethod(
 #' Bioconductor supported genome, such as "hg19", "mm10", etc.
 #' Default: NULL (e.g. after \code{library (enrichTF)},
 #' you can call function \code{setGenome("hg19")})
+#' @param  threads \code{Integer} scalar.
+#' The maximum threads that will be used in this step.
+#' Default: getThreads()
 #' @param ... Additional arguments, currently unused.
 #' @details
 #' Scan for motif occurrences using the prepared PWMs and
@@ -331,6 +354,7 @@ setGeneric("enrichFindMotifsInRegions",
                     motifRc = c("integrate","jaspar","pwmfile"),
                     inputPwmFile = getRefFiles("motifpwm"),
                     genome = getGenome(),
+                    threads = getThreads(),
                     ...) standardGeneric("enrichFindMotifsInRegions"))
 
 
@@ -347,6 +371,7 @@ setMethod(
                           motifRc = c("integrate","jaspar","pwmfile"),
                           inputPwmFile = getRefFiles("motifpwm"),
                           genome = getGenome(),
+                          threads = getThreads(),
                           ...){
         allpara <- c(list(Class = "FindMotifsInRegions",
                           prevSteps = list(prevStep)),
@@ -363,6 +388,7 @@ findMotifsInRegions <- function(inputRegionBed,
                                 motifRc = c("integrate","jaspar","pwmfile"),
                                 inputPwmFile = getRefFiles("motifpwm"),
                                 genome = getGenome(),
+                                threads = getThreads(),
                                 ...){
     allpara <- c(list(Class = "FindMotifsInRegions",
                       prevSteps = list()),
